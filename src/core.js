@@ -1,27 +1,43 @@
 'use strict';
 
-import colors from 'colors';
-import assign from 'object-assign';
-import kongState from './kongState';
-import {normalize as normalizeAttributes} from './utils';
-import {
-    noop,
-    createApi,
-    removeApi,
-    updateApi,
-    addApiPlugin,
-    removeApiPlugin,
-    updateApiPlugin,
-    createConsumer,
-    removeConsumer,
-    addConsumerCredentials,
-    updateConsumerCredentials,
-    removeConsumerCredentials,
-    addConsumerAcls,
-    removeConsumerAcls
-} from './actions';
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.consumerAclSchema = exports.consumerCredentialSchema = undefined;
+exports.getSupportedCredentials = getSupportedCredentials;
+exports.getCredentialSchema = getCredentialSchema;
+exports.getAclSchema = getAclSchema;
+exports.apis = apis;
+exports.plugins = plugins;
+exports.consumers = consumers;
+exports.credentials = credentials;
+exports.acls = acls;
 
-export const consumerCredentialSchema = {
+var _colors = require('colors');
+
+var _colors2 = _interopRequireDefault(_colors);
+
+var _objectAssign = require('object-assign');
+
+var _objectAssign2 = _interopRequireDefault(_objectAssign);
+
+var _kongState = require('./kongState');
+
+var _kongState2 = _interopRequireDefault(_kongState);
+
+var _utils = require('./utils');
+
+var _actions = require('./actions');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { var callNext = step.bind(null, "next"); var callThrow = step.bind(null, "throw"); function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(callNext, callThrow); } } callNext(); }); }; }
+
+var consumerCredentialSchema = exports.consumerCredentialSchema = {
     oauth2: {
         id: 'client_id'
     },
@@ -39,226 +55,321 @@ export const consumerCredentialSchema = {
     }
 };
 
-export const consumerAclSchema = {
+var consumerAclSchema = exports.consumerAclSchema = {
     id: 'group'
 };
 
-export function getSupportedCredentials() {
+function getSupportedCredentials() {
     return Object.keys(consumerCredentialSchema);
 }
 
-export function getCredentialSchema(name) {
+function getCredentialSchema(name) {
     if (false === consumerCredentialSchema.hasOwnProperty(name)) {
-        throw new Error(`Unknown credential "${name}"`);
+        throw new Error('Unknown credential "' + name + '"');
     }
 
     return consumerCredentialSchema[name];
 }
 
-export function getAclSchema() {
+function getAclSchema() {
     return consumerAclSchema;
 }
 
-export default async function execute(config, adminApi) {
-    const actions = [
-        ...apis(config.apis),
-        ...consumers(config.consumers)
-    ];
+exports.default = (function () {
+    var ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(config, adminApi) {
+        var actions;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+                switch (_context.prev = _context.next) {
+                    case 0:
+                        actions = [].concat(_toConsumableArray(apis(config.apis)), _toConsumableArray(consumers(config.consumers)));
+                        return _context.abrupt('return', actions.map(_bindWorldState(adminApi)).reduce(function (promise, action) {
+                            return promise.then(_executeActionOnApi(action, adminApi));
+                        }, Promise.resolve('')));
 
-    return actions
-        .map(_bindWorldState(adminApi))
-        .reduce((promise, action) => promise.then(_executeActionOnApi(action, adminApi)), Promise.resolve(''));
-}
+                    case 2:
+                    case 'end':
+                        return _context.stop();
+                }
+            }
+        }, _callee, this);
+    }));
 
-export function apis(apis = []) {
-    return apis.reduce((actions, api) => [...actions, _api(api), ..._apiPlugins(api)], []);
+    function execute(_x, _x2) {
+        return ref.apply(this, arguments);
+    }
+
+    return execute;
+})();
+
+function apis() {
+    var apis = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+    return apis.reduce(function (actions, api) {
+        return [].concat(_toConsumableArray(actions), [_api(api)], _toConsumableArray(_apiPlugins(api)));
+    }, []);
 };
 
-export function plugins(apiName, plugins) {
-    return plugins.reduce((actions, plugin) => [...actions, _plugin(apiName, plugin)], []);
+function plugins(apiName, plugins) {
+    return plugins.reduce(function (actions, plugin) {
+        return [].concat(_toConsumableArray(actions), [_plugin(apiName, plugin)]);
+    }, []);
 }
 
-export function consumers(consumers = []) {
-    return consumers.reduce((calls, consumer) => [...calls, _consumer(consumer), ..._consumerCredentials(consumer), ..._consumerAcls(consumer)], []);
+function consumers() {
+    var consumers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+    return consumers.reduce(function (calls, consumer) {
+        return [].concat(_toConsumableArray(calls), [_consumer(consumer)], _toConsumableArray(_consumerCredentials(consumer)), _toConsumableArray(_consumerAcls(consumer)));
+    }, []);
 }
 
-export function credentials(username, credentials) {
-    return credentials.reduce((actions, credential) => [...actions, _consumerCredential(username, credential)], []);
+function credentials(username, credentials) {
+    return credentials.reduce(function (actions, credential) {
+        return [].concat(_toConsumableArray(actions), [_consumerCredential(username, credential)]);
+    }, []);
 }
 
-export function acls(username, acls) {
-    return acls.reduce((actions, acl) => [...actions, _consumerAcl(username, acl)], []);
+function acls(username, acls) {
+    return acls.reduce(function (actions, acl) {
+        return [].concat(_toConsumableArray(actions), [_consumerAcl(username, acl)]);
+    }, []);
 }
 
 function _executeActionOnApi(action, adminApi) {
-    return async () => {
-        const params = await action();
+    var _this = this;
 
-        if (params.noop) {
-            return Promise.resolve('No-op');
-        }
+    return _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
+        var params;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+            while (1) {
+                switch (_context2.prev = _context2.next) {
+                    case 0:
+                        _context2.next = 2;
+                        return action();
 
-        return adminApi
-            .requestEndpoint(params.endpoint, params)
-            .then(response => {
-                console.info(
-                    `\n${params.method.blue}`,
-                    response.ok ? ('' + response.status).bold.green : ('' + response.status).bold.red,
-                    adminApi.router(params.endpoint).blue,
-                    "\n",
-                    params.body ? params.body : ''
-                );
+                    case 2:
+                        params = _context2.sent;
 
-                if (!response.ok) {
-                    if (params.endpoint.name == 'consumer' && params.method == 'DELETE') {
-                        console.log('Bug in Kong throws error, Consumer has still been removed will continue'.bold.green);
+                        if (!params.noop) {
+                            _context2.next = 5;
+                            break;
+                        }
 
-                        return response;
-                    }
+                        return _context2.abrupt('return', Promise.resolve('No-op'));
 
-                    return response.text()
-                        .then(content => {
-                            throw new Error(`${response.statusText}\n${content}`);
-                        });
-                } else {
-                    response.text()
-                        .then(content => {
-                            console.info(`Response status ${response.statusText}:`.green, "\n", JSON.parse(content));
-                        });
+                    case 5:
+                        return _context2.abrupt('return', adminApi.requestEndpoint(params.endpoint, params).then(function (response) {
+                            console.info('\n' + params.method.blue, response.ok ? ('' + response.status).bold.green : ('' + response.status).bold.red, adminApi.router(params.endpoint).blue, "\n", params.body ? params.body : '');
+
+                            if (!response.ok) {
+                                if (params.endpoint.name == 'consumer' && params.method == 'DELETE') {
+                                    console.log('Bug in Kong throws error, Consumer has still been removed will continue'.bold.green);
+
+                                    return response;
+                                }
+
+                                return response.text().then(function (content) {
+                                    throw new Error(response.statusText + '\n' + content);
+                                });
+                            } else {
+                                response.text().then(function (content) {
+                                    console.info(('Response status ' + response.statusText + ':').green, "\n", JSON.parse(content));
+                                });
+                            }
+
+                            return response;
+                        }));
+
+                    case 6:
+                    case 'end':
+                        return _context2.stop();
                 }
-
-                return response;
-            });
-        }
+            }
+        }, _callee2, _this);
+    }));
 }
 
 function _bindWorldState(adminApi) {
-    return f => async () => {
-        const state = await kongState(adminApi);
-        return f(_createWorld(state));
-    }
+    var _this2 = this;
+
+    return function (f) {
+        return _asyncToGenerator(regeneratorRuntime.mark(function _callee3() {
+            var state;
+            return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                while (1) {
+                    switch (_context3.prev = _context3.next) {
+                        case 0:
+                            _context3.next = 2;
+                            return (0, _kongState2.default)(adminApi);
+
+                        case 2:
+                            state = _context3.sent;
+                            return _context3.abrupt('return', f(_createWorld(state)));
+
+                        case 4:
+                        case 'end':
+                            return _context3.stop();
+                    }
+                }
+            }, _callee3, _this2);
+        }));
+    };
 }
 
-function _createWorld({apis, consumers}) {
-    const world = {
-        hasApi: apiName => apis.some(api => api.name === apiName),
-        getApi: apiName => {
-            const api = apis.find(api => api.name === apiName);
+function _createWorld(_ref) {
+    var apis = _ref.apis;
+    var consumers = _ref.consumers;
+
+    var world = {
+        hasApi: function hasApi(apiName) {
+            return apis.some(function (api) {
+                return api.name === apiName;
+            });
+        },
+        getApi: function getApi(apiName) {
+            var api = apis.find(function (api) {
+                return api.name === apiName;
+            });
 
             if (!api) {
-                throw new Error(`Unable to find api ${apiName}`);
+                throw new Error('Unable to find api ' + apiName);
             }
 
             return api;
         },
-        getPlugin: (apiName, pluginName) => {
-            const plugin = world.getApi(apiName).plugins.find(plugin => plugin.name == pluginName);
+        getPlugin: function getPlugin(apiName, pluginName) {
+            var plugin = world.getApi(apiName).plugins.find(function (plugin) {
+                return plugin.name == pluginName;
+            });
 
             if (!plugin) {
-                throw new Error(`Unable to find plugin ${pluginName}`);
+                throw new Error('Unable to find plugin ' + pluginName);
             }
 
             return plugin;
         },
-        getPluginId: (apiName, pluginName) => {
+        getPluginId: function getPluginId(apiName, pluginName) {
             return world.getPlugin(apiName, pluginName).id;
         },
-        getPluginAttributes: (apiName, pluginName) => {
+        getPluginAttributes: function getPluginAttributes(apiName, pluginName) {
             return world.getPlugin(apiName, pluginName).config;
         },
-        hasPlugin: (apiName, pluginName) => {
-            return apis.some(api => api.name === apiName && api.plugins.some(plugin => plugin.name == pluginName));
+        hasPlugin: function hasPlugin(apiName, pluginName) {
+            return apis.some(function (api) {
+                return api.name === apiName && api.plugins.some(function (plugin) {
+                    return plugin.name == pluginName;
+                });
+            });
         },
-        hasConsumer: (username) => {
-            return consumers.some(consumer => consumer.username === username);
+        hasConsumer: function hasConsumer(username) {
+            return consumers.some(function (consumer) {
+                return consumer.username === username;
+            });
         },
-        hasConsumerCredential: (username, name, attributes) => {
-            const schema = getCredentialSchema(name);
+        hasConsumerCredential: function hasConsumerCredential(username, name, attributes) {
+            var schema = getCredentialSchema(name);
 
-            return consumers.some(
-                c => c.username === username
-                && c.credentials[name].some(oa => oa[schema.id] == attributes[schema.id]));
+            return consumers.some(function (c) {
+                return c.username === username && c.credentials[name].some(function (oa) {
+                    return oa[schema.id] == attributes[schema.id];
+                });
+            });
         },
-        hasConsumerAcl: (username, groupName) => {
-            const schema = getAclSchema();
+        hasConsumerAcl: function hasConsumerAcl(username, groupName) {
+            var schema = getAclSchema();
 
             return consumers.some(function (consumer) {
+                if(typeof consumer.acls == 'undefined'){
+                  return;
+                }
                 return consumer.acls.some(function (acl) {
                     return consumer.username === username && acl[schema.id] == groupName;
                 });
             });
         },
 
-        getConsumerCredential: (username, name, attributes) => {
-            const consumer = consumers.find(c => c.username === username);
+        getConsumerCredential: function getConsumerCredential(username, name, attributes) {
+            var consumer = consumers.find(function (c) {
+                return c.username === username;
+            });
 
             if (!consumer) {
-                throw new Error(`Unable to find consumer ${username}`);
+                throw new Error('Unable to find consumer ' + username);
             }
 
-            const credential = extractCredentialId(consumer.credentials, name, attributes);
+            var credential = extractCredentialId(consumer.credentials, name, attributes);
 
             if (!credential) {
-                throw new Error(`Unable to find credential`);
+                throw new Error('Unable to find credential');
             }
 
             return credential;
         },
 
-        getConsumerAcl: (username, groupName) => {
-            const consumer = consumers.find(c => c.username === username);
+        getConsumerAcl: function getConsumerAcl(username, groupName) {
+            var consumer = consumers.find(function (c) {
+                return c.username === username;
+            });
 
             if (!consumer) {
-                throw new Error(`Unable to find consumer ${username}`);
+                throw new Error('Unable to find consumer ' + username);
             }
 
-            const acl = extractAclId(consumer.acls, groupName);
+            var acl = extractAclId(consumer.acls, groupName);
 
             if (!acl) {
-                throw new Error(`Unable to find acl`);
+                throw new Error('Unable to find acl');
             }
 
             return acl;
         },
 
-        getConsumerCredentialId: (username, name, attributes) => {
+        getConsumerCredentialId: function getConsumerCredentialId(username, name, attributes) {
             return world.getConsumerCredential(username, name, attributes).id;
         },
 
-        getConsumerAclId: (username, groupName) => {
+        getConsumerAclId: function getConsumerAclId(username, groupName) {
             return world.getConsumerAcl(username, groupName).id;
         },
 
-        isApiUpToDate: (api) => {
-            let current = world.getApi(api.name);
+        isApiUpToDate: function isApiUpToDate(api) {
+            var current = world.getApi(api.name);
 
-            let different = Object.keys(api.attributes).filter(key => {
+            var different = Object.keys(api.attributes).filter(function (key) {
                 return api.attributes[key] !== current[key];
             });
 
             return different.length == 0;
         },
 
-        isApiPluginUpToDate: (apiName, plugin) => {
+        isApiPluginUpToDate: function isApiPluginUpToDate(apiName, plugin) {
             if (false == plugin.hasOwnProperty('attributes')) {
                 // of a plugin has no attributes, and its been added then it is up to date
                 return true;
             }
 
-            const diff = (a, b) => Object.keys(a).filter(key => {
-                return JSON.stringify(a[key]) !== JSON.stringify(b[key]);
-            });
+            var diff = function diff(a, b) {
+                return Object.keys(a).filter(function (key) {
+                    return JSON.stringify(a[key]) !== JSON.stringify(b[key]);
+                });
+            };
 
-            let current = world.getPlugin(apiName, plugin.name);
-            let {config, ...rest} = normalizeAttributes(plugin.attributes);
+            var current = world.getPlugin(apiName, plugin.name);
+
+            var _normalizeAttributes = (0, _utils.normalize)(plugin.attributes);
+
+            var config = _normalizeAttributes.config;
+
+            var rest = _objectWithoutProperties(_normalizeAttributes, ['config']);
 
             return diff(config, current.config).length === 0 && diff(rest, current).length === 0;
         },
 
-        isConsumerCredentialUpToDate: (username, credential) => {
-            const current = world.getConsumerCredential(username, credential.name, credential.attributes);
+        isConsumerCredentialUpToDate: function isConsumerCredentialUpToDate(username, credential) {
+            var current = world.getConsumerCredential(username, credential.name, credential.attributes);
 
-            let different = Object.keys(credential.attributes).filter(key => {
+            var different = Object.keys(credential.attributes).filter(function (key) {
                 return JSON.stringify(credential.attributes[key]) !== JSON.stringify(current[key]);
             });
 
@@ -270,36 +381,40 @@ function _createWorld({apis, consumers}) {
 }
 
 function extractCredentialId(credentials, name, attributes) {
-    const idName = getCredentialSchema(name).id;
+    var idName = getCredentialSchema(name).id;
 
-    return credentials[name].find(x => x[idName] == attributes[idName]);
+    return credentials[name].find(function (x) {
+        return x[idName] == attributes[idName];
+    });
 }
 
 function extractAclId(acls, groupName) {
-    const idName = getAclSchema().id;
-    return acls.find(x => x[idName] == groupName);
+    var idName = getAclSchema().id;
+    return acls.find(function (x) {
+        return x[idName] == groupName;
+    });
 }
 
 function _api(api) {
     validateEnsure(api.ensure);
     validateApiRequiredAttributes(api);
 
-    return world => {
+    return function (world) {
         if (api.ensure == 'removed') {
-            return world.hasApi(api.name) ? removeApi(api.name) : noop();
+            return world.hasApi(api.name) ? (0, _actions.removeApi)(api.name) : (0, _actions.noop)();
         }
 
         if (world.hasApi(api.name)) {
             if (world.isApiUpToDate(api)) {
-                console.log("api", `${api.name}`.bold, "is up-to-date");
+                console.log("api", ('' + api.name).bold, "is up-to-date");
 
-                return noop();
+                return (0, _actions.noop)();
             }
 
-            return updateApi(api.name, api.attributes);
+            return (0, _actions.updateApi)(api.name, api.attributes);
         }
 
-        return createApi(api.name, api.attributes);
+        return (0, _actions.createApi)(api.name, api.attributes);
     };
 }
 
@@ -313,85 +428,86 @@ function validateEnsure(ensure) {
     }
 
     if (['removed', 'present'].indexOf(ensure) === -1) {
-        throw new Error(`Invalid ensure "${ensure}"`);
+        throw new Error('Invalid ensure "' + ensure + '"');
     }
 }
 
 function validateApiRequiredAttributes(api) {
     if (false == api.hasOwnProperty('attributes')) {
-        throw Error(`"${api.name}" api has to declare "upstream_url" attribute`);
+        throw Error('"' + api.name + '" api has to declare "upstream_url" attribute');
     }
 
     if (false == api.attributes.hasOwnProperty('upstream_url')) {
-        throw Error(`"${api.name}" api has to declare "upstream_url" attribute`);
+        throw Error('"' + api.name + '" api has to declare "upstream_url" attribute');
     }
-
 }
 
 function _plugin(apiName, plugin) {
     validateEnsure(plugin.ensure);
 
-    return world => {
+    return function (world) {
         if (plugin.ensure == 'removed') {
             if (world.hasPlugin(apiName, plugin.name)) {
-                return removeApiPlugin(apiName, world.getPluginId(apiName, plugin.name));
+                return (0, _actions.removeApiPlugin)(apiName, world.getPluginId(apiName, plugin.name));
             }
 
-            return noop();
+            return (0, _actions.noop)();
         }
 
         if (world.hasPlugin(apiName, plugin.name)) {
             if (world.isApiPluginUpToDate(apiName, plugin)) {
-                console.log("  - plugin", `${plugin.name}`.bold, "is up-to-date".green);
+                console.log("  - plugin", ('' + plugin.name).bold, "is up-to-date".green);
 
-                return noop();
+                return (0, _actions.noop)();
             }
 
-            return updateApiPlugin(apiName, world.getPluginId(apiName, plugin.name), plugin.attributes);
+            return (0, _actions.updateApiPlugin)(apiName, world.getPluginId(apiName, plugin.name), plugin.attributes);
         }
 
-        return addApiPlugin(apiName, plugin.name, plugin.attributes);
-    }
+        return (0, _actions.addApiPlugin)(apiName, plugin.name, plugin.attributes);
+    };
 }
 
 function _consumer(consumer) {
     validateEnsure(consumer.ensure);
     validateConsumer(consumer);
 
-    return world => {
+    return function (world) {
         if (consumer.ensure == 'removed') {
             if (world.hasConsumer(consumer.username)) {
-                return removeConsumer(consumer.username);
+                return (0, _actions.removeConsumer)(consumer.username);
             }
 
-            return noop();
+            return (0, _actions.noop)();
         }
 
         if (!world.hasConsumer(consumer.username)) {
-            return createConsumer(consumer.username);
+            return (0, _actions.createConsumer)(consumer.username);
         }
 
-        console.log("consumer", `${consumer.username}`.bold);
+        console.log("consumer", ('' + consumer.username).bold);
 
-        return noop();
-    }
+        return (0, _actions.noop)();
+    };
 
-    let _credentials = [];
+    var _credentials = [];
 
     if (consumer.credentials && consumer.ensure != 'removed') {
         _credentials = consumerCredentials(consumer.username, consumer.credentials);
     }
 
-    let _acls = [];
+    var _acls = [];
 
     if (consumer.acls && consumer.ensure != 'removed') {
         _acls = consumerAcls(consumer.username, consumer.acls);
     }
 
-    return [consumerAction, ..._credentials, ..._acls];
+    return [consumerAction].concat(_toConsumableArray(_credentials), _toConsumableArray(_acls));
 }
 
-function validateConsumer({username}) {
+function validateConsumer(_ref2) {
+    var username = _ref2.username;
+
     if (!username) {
         throw new Error("Consumer username must be specified");
     }
@@ -409,51 +525,51 @@ function _consumerCredential(username, credential) {
     validateEnsure(credential.ensure);
     validateCredentialRequiredAttributes(credential);
 
-    return world => {
+    return function (world) {
         if (credential.ensure == 'removed') {
             if (world.hasConsumerCredential(username, credential.name, credential.attributes)) {
-                const credentialId = world.getConsumerCredentialId(username, credential.name, credential.attributes);
+                var credentialId = world.getConsumerCredentialId(username, credential.name, credential.attributes);
 
-                return removeConsumerCredentials(username, credential.name, credentialId);
+                return (0, _actions.removeConsumerCredentials)(username, credential.name, credentialId);
             }
 
-            return noop();
+            return (0, _actions.noop)();
         }
 
         if (world.hasConsumerCredential(username, credential.name, credential.attributes)) {
-            const credentialId = world.getConsumerCredentialId(username, credential.name, credential.attributes);
+            var _credentialId = world.getConsumerCredentialId(username, credential.name, credential.attributes);
 
             if (world.isConsumerCredentialUpToDate(username, credential)) {
-                const credentialIdName = getCredentialSchema(credential.name).id;
-                console.log("  - credential", `${credential.name}`.bold, `with ${credentialIdName}:`, `${credential.attributes[credentialIdName]}`.bold, "is up-to-date".green);
+                var credentialIdName = getCredentialSchema(credential.name).id;
+                console.log("  - credential", ('' + credential.name).bold, 'with ' + credentialIdName + ':', ('' + credential.attributes[credentialIdName]).bold, "is up-to-date".green);
 
-                return noop();
+                return (0, _actions.noop)();
             }
 
-            return updateConsumerCredentials(username, credential.name, credentialId, credential.attributes);
+            return (0, _actions.updateConsumerCredentials)(username, credential.name, _credentialId, credential.attributes);
         }
 
-        return addConsumerCredentials(username, credential.name, credential.attributes);
-    }
+        return (0, _actions.addConsumerCredentials)(username, credential.name, credential.attributes);
+    };
 }
 
 function validateCredentialRequiredAttributes(credential) {
-    const credentialIdName = getCredentialSchema(credential.name).id;
+    var credentialIdName = getCredentialSchema(credential.name).id;
 
     if (false == credential.hasOwnProperty('attributes')) {
-        throw Error(`${credential.name} has to declare attributes.${credentialIdName}`);
+        throw Error(credential.name + ' has to declare attributes.' + credentialIdName);
     }
 
     if (false == credential.attributes.hasOwnProperty(credentialIdName)) {
-        throw Error(`${credential.name} has to declare attributes.${credentialIdName}`);
+        throw Error(credential.name + ' has to declare attributes.' + credentialIdName);
     }
 }
 
 function validateAclRequiredAttributes(acl) {
-    const aclIdName = getAclSchema().id;
+    var aclIdName = getAclSchema().id;
 
     if (false == acl.hasOwnProperty(aclIdName)) {
-        throw Error(`ACLs has to declare property ${aclIdName}`);
+        throw Error('ACLs has to declare property ' + aclIdName);
     }
 }
 
@@ -470,21 +586,21 @@ function _consumerAcl(username, acl) {
     validateEnsure(acl.ensure);
     validateAclRequiredAttributes(acl);
 
-    return world => {
+    return function (world) {
         if (acl.ensure == 'removed') {
             if (world.hasConsumerAcl(username, acl.group)) {
-                const aclId = world.getConsumerAclId(username, acl.group);
+                var aclId = world.getConsumerAclId(username, acl.group);
 
-                return removeConsumerAcls(username, aclId);
+                return (0, _actions.removeConsumerAcls)(username, aclId);
             }
 
-            return noop();
+            return (0, _actions.noop)();
         }
 
         if (world.hasConsumerAcl(username, acl.group)) {
-            return noop();
+            return (0, _actions.noop)();
         }
 
-        return addConsumerAcls(username, acl.group);
-    }
+        return (0, _actions.addConsumerAcls)(username, acl.group);
+    };
 }
